@@ -9,7 +9,17 @@ namespace SliderControl
             InitializeComponent();
 
             Slider s = new Slider(this);
-            
+            s.Resized += S_Resized;
+        }
+
+        private void S_Resized(object sender, ResizedEventArgs e)
+        {
+            //e.NewSize
+        }
+
+        public void UpdateLabel(string txt)
+        {
+            label1.Text = txt;
         }
 
     }
