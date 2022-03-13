@@ -10,16 +10,19 @@ namespace SliderControl
 
             Slider s = new Slider(this);
             s.Resized += S_Resized;
+            s.CursorMoved += S_CursorMoved;
+        }
+
+        private void S_CursorMoved(object sender, CursorMovedEventArgs e)
+        {
+            label1.Text = e.NewValue.ToString();
+            //e.NewValue
         }
 
         private void S_Resized(object sender, ResizedEventArgs e)
         {
+            label2.Text = e.NewSize.ToString();
             //e.NewSize
-        }
-
-        public void UpdateLabel(string txt)
-        {
-            label1.Text = txt;
         }
 
     }
