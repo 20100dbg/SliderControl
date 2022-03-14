@@ -47,8 +47,8 @@ namespace SliderControl
             SmallChange = 1;
             LargeChange = 10;
 
-            SetSpan(20);
-            SetValue(0);
+            SetSpan(40);
+            SetValue(10);
         }
 
         private void P_background_MouseUp(object sender, MouseEventArgs e)
@@ -88,7 +88,7 @@ namespace SliderControl
 
             if (isResizing)
             {
-                CurrentSpan = SizeToSpan(p_cursor.Width);
+                CurrentSpan = SpanToSize(p_cursor.Width);
                 Resized?.Invoke(this, new ResizedEventArgs { NewSize = CurrentSpan });
             }
             else if (isMoving)
@@ -113,34 +113,48 @@ namespace SliderControl
             else
             {
                 //détecter les bords
-                if (IsMouseOnBorder(e))
-                    Cursor.Current = Cursors.SizeWE;
-                else
-                    Cursor.Current = Cursors.Arrow;
+                Cursor.Current = (IsMouseOnBorder(e)) ? Cursors.SizeWE : Cursors.Arrow;
             }
         }
 
         private bool IsMouseOnBorder(MouseEventArgs e)
         {
-            return (e.X < 2 || e.X >= p_cursor.Width - 3);
+            //return (e.X < 2 || e.X >= p_cursor.Width - 2);
+            return (e.X >= p_cursor.Width - 2);
         }
 
         private void UpdateLocation(Point loc)
         {
             int diff = loc.X - previousLocation.X;
-            Point newLoc = new Point(p_cursor.Location.X + diff, p_cursor.Location.Y);
 
             if (isResizing)
             {
                 if (p_cursor.Width + diff <= p_background.Width - (p_cursor.Location.X - p_background.Location.X))
                 {
-                    p_cursor.Width += diff;
-                    if (p_cursor.Width < minCusorSize) p_cursor.Width = minCusorSize;
+                    //Point newLoc = new Point(p_cursor.Location.X, p_cursor.Location.Y);
+
+                    //if (loc.X > p_cursor.Width - 2)
+                    {
+                        p_cursor.Width += diff;
+                        if (p_cursor.Width < minCusorSize) p_cursor.Width = minCusorSize;
+                    }
+                    /*
+                    else
+                    {
+                        diff = (diff * -1);
+                        p_cursor.Width += diff;
+                        newLoc.Offset(diff, 0);
+
+                        p_cursor.Location = newLoc;
+                    }
+                    */
                     previousLocation = loc;
                 }
             }
             else if (isMoving)
             {
+                Point newLoc = new Point(p_cursor.Location.X + diff, p_cursor.Location.Y);
+
                 if (newLoc.X < p_background.Location.X)
                     p_cursor.Location = new Point(p_background.Location.X, p_cursor.Location.Y);
                 else if (newLoc.X + p_cursor.Width > p_background.Location.X + p_background.Width)
@@ -168,8 +182,14 @@ namespace SliderControl
 
         private int SizeToSpan(int width)
         {
-            int bg = p_background.Width; // - p_cursor.Width;
-            return width * Maximum / bg; ;
+            int bg = p_background.Width;
+            return width * bg / Maximum;
+        }
+
+        private int SpanToSize(int width)
+        {
+            int bg = p_background.Width;
+            return width * Maximum / bg;
         }
 
         private void Scroll(int val)
