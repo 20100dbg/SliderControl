@@ -44,9 +44,9 @@
             // 
             // hScrollBar1
             // 
-            this.hScrollBar1.Location = new System.Drawing.Point(85, 9);
+            this.hScrollBar1.Location = new System.Drawing.Point(114, 131);
             this.hScrollBar1.Name = "hScrollBar1";
-            this.hScrollBar1.Size = new System.Drawing.Size(336, 28);
+            this.hScrollBar1.Size = new System.Drawing.Size(336, 25);
             this.hScrollBar1.TabIndex = 1;
             // 
             // label2
