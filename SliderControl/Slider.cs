@@ -4,47 +4,92 @@ using System.Windows.Forms;
 
 namespace SliderControl
 {
-    internal class Slider
+    public class Slider
     {
-        Form parentForm;
+        //todo
+        //vérifier la cohérence du nommage (cursor, span, value, etc)
 
         //Events
-        public event ResizedEventHandler Resized;
-        public delegate void ResizedEventHandler(object sender, ResizedEventArgs e);
+        /// <summary>
+        /// Occurs after the slider's span is resized
+        /// </summary>
+        public event SpanResizedEventHandler SpanResized;
+        public delegate void SpanResizedEventHandler(object sender, SpanResizedEventArgs e);
 
-        public event CursorMovedEventHandler CursorMoved;
-        public delegate void CursorMovedEventHandler(object sender, CursorMovedEventArgs e);
+        /// <summary>
+        /// Occurs when the slider's span is being resized
+        /// </summary>
+        public event SpanResizingEventHandler SpanResizing;
+        public delegate void SpanResizingEventHandler(object sender, SpanResizedEventArgs e);
 
-        public event ResizingEventHandler Resizing;
-        public delegate void ResizingEventHandler(object sender, ResizedEventArgs e);
+        /// <summary>
+        /// Occurs after the cursor is moved
+        /// </summary>
+        public event SpanMovedEventHandler SpanMoved;
+        public delegate void SpanMovedEventHandler(object sender, SpanMovedEventArgs e);
 
-        public event CursorMovingEventHandler CursorMoving;
-        public delegate void CursorMovingEventHandler(object sender, CursorMovedEventArgs e);
+        /// <summary>
+        /// Occurs when the cursor is being moved
+        /// </summary>
+        public event SpanMovingEventHandler SpanMoving;
+        public delegate void SpanMovingEventHandler(object sender, SpanMovedEventArgs e);
 
 
         //Properties
+        /// <summary>
+        /// Gets the current value of the cursor
+        /// </summary>
         public int CurrentValue { get; private set; }
+
+        /// <summary>
+        /// Gets the current span of the cursor
+        /// </summary>
         public int CurrentSpan { get; private set; }
+
+        /// <summary>
+        /// Gets or sets the minimum value
+        /// </summary>
         public int Minimum { get; set; }
+
+        /// <summary>
+        /// Gets or sets the maximum value
+        /// </summary>
         public int Maximum { get; set; }
+
+        /// <summary>
+        /// Gets or sets the amount of change when clicking on buttons
+        /// </summary>
         public int SmallChange { get; set; }
+
+        /// <summary>
+        /// Gets or sets the amount of change when clicking on the background
+        /// </summary>
         public int LargeChange { get; set; }
-        
+
 
         //Private attributes
-        private Point previousLocation;
-        private Control activeControl;
+        Form parentForm;
+        Point previousLocation;
+        Control activeControl;
         bool isResizing = false;
         bool isMoving = false;
         int minCusorSize = 5;
 
 
         //Constructors
+        /// <summary>
+        /// Build a Slider control thats sets location, size, minimum and maximum values
+        /// </summary>
+        /// <param name="parentForm">The form the control must be added to</param>
         public Slider(Form parentForm, Point location, Size size, int minimum, int maximum)
         {
             Init(parentForm, location, size, minimum, maximum, 10);
         }
 
+        /// <summary>
+        /// Build a Slider control that sets minimum and maximum values
+        /// </summary>
+        /// <param name="parentForm">The form the control must be added to</param>
         public Slider(Form parentForm, int minimum, int maximum)
         {
             Point location = new Point(100, 100);
@@ -53,6 +98,10 @@ namespace SliderControl
             Init(parentForm, location, size, minimum, maximum, 10);
         }
 
+        /// <summary>
+        /// Build a Slider control with default parameters
+        /// </summary>
+        /// <param name="parentForm">The form the control must be added to</param>
         public Slider(Form parentForm)
         {
             Point location = new Point(100, 100);
@@ -77,6 +126,10 @@ namespace SliderControl
 
 
         //public methods
+        /// <summary>
+        /// Change the slider control's location
+        /// </summary>
+        /// <param name="newLocation">Point object to new location</param>
         public void SetLocation(Point newLocation)
         {
             this.p_background.Location = newLocation;
@@ -85,6 +138,10 @@ namespace SliderControl
             this.b_stepUp.Location = new System.Drawing.Point(this.p_background.Location.X + this.p_background.Width - 1, this.p_background.Location.Y);
         }
 
+        /// <summary>
+        /// Change the slider control's size
+        /// </summary>
+        /// <param name="newSize">New size to apply to the control</param>
         public void SetSize(Size newSize)
         {
             this.p_background.Size = newSize;
@@ -94,17 +151,27 @@ namespace SliderControl
             this.b_stepUp.Size = new System.Drawing.Size(22, p_background.Height);
         }
 
+        /// <summary>
+        /// Change the control's span size. Must be between minimum and maximum
+        /// </summary>
+        /// <param name="newSpan">New span to use</param>
         public void SetSpan(int newSpan)
         {
             CurrentSpan = newSpan;
+            if (CurrentSpan > Maximum) CurrentSpan = Maximum;
+            else if (CurrentSpan < Minimum) CurrentSpan = Minimum;
 
             int width = WidthToSpan(newSpan);
             if (p_cursor.Width < minCusorSize) width = minCusorSize;
             p_cursor.Width = width;
 
-            Resized?.Invoke(this, new ResizedEventArgs { NewSize = CurrentSpan });
+            SpanResized?.Invoke(this, new SpanResizedEventArgs { NewSize = CurrentSpan });
         }
 
+        /// <summary>
+        /// Change the control's value. Must be between minimum and maximum
+        /// </summary>
+        /// <param name="newValue">Value to set</param>
         public void SetValue(int newValue)
         {
             CurrentValue = newValue;
@@ -114,7 +181,7 @@ namespace SliderControl
             int X = ValueToLocX(CurrentValue);
             p_cursor.Location = new Point(p_background.Location.X + X, p_cursor.Location.Y);
             
-            CursorMoved?.Invoke(this, new CursorMovedEventArgs { NewValue = CurrentValue });
+            SpanMoved?.Invoke(this, new SpanMovedEventArgs { NewValue = CurrentValue });
         }
 
 
@@ -158,13 +225,13 @@ namespace SliderControl
             if (isResizing)
             {
                 CurrentSpan = SpanToWidth(p_cursor.Width);
-                Resized?.Invoke(this, new ResizedEventArgs { NewSize = CurrentSpan });
+                SpanResized?.Invoke(this, new SpanResizedEventArgs { NewSize = CurrentSpan });
             }
             else if (isMoving)
             {
                 int rel = p_cursor.Location.X - p_background.Location.X;
                 CurrentValue = LocXToValue(rel);
-                CursorMoved?.Invoke(this, new CursorMovedEventArgs { NewValue = CurrentValue });
+                SpanMoved?.Invoke(this, new SpanMovedEventArgs { NewValue = CurrentValue });
             }
             isMoving = isResizing = false;
         }
@@ -197,7 +264,7 @@ namespace SliderControl
                     previousLocation = loc;
 
                     CurrentSpan = SpanToWidth(p_cursor.Width);
-                    Resizing?.Invoke(this, new ResizedEventArgs { NewSize = CurrentSpan });
+                    SpanResizing?.Invoke(this, new SpanResizedEventArgs { NewSize = CurrentSpan });
                 }
             }
             else if (isMoving)
@@ -216,7 +283,7 @@ namespace SliderControl
                     if (CurrentValue > Maximum) CurrentValue = Maximum;
                     else if (CurrentValue < Minimum) CurrentValue = Minimum;
 
-                    CursorMoving?.Invoke(this, new CursorMovedEventArgs { NewValue = CurrentValue });
+                    SpanMoving?.Invoke(this, new SpanMovedEventArgs { NewValue = CurrentValue });
                     p_cursor.Location = newLoc;
                 }
             }
@@ -252,7 +319,7 @@ namespace SliderControl
         }
 
         /// <summary>
-        /// Initialise tous les sous controls nécessaires
+        /// Initialize subcontrols
         /// </summary>
         private void InitControl(Point spawnPoint, Size backgroundSize)
         {
@@ -309,19 +376,18 @@ namespace SliderControl
             this.p_background.ResumeLayout(false);
         }
 
-
-        private System.Windows.Forms.Panel p_background;
-        private System.Windows.Forms.Panel p_cursor;
-        private System.Windows.Forms.Button b_stepUp;
-        private System.Windows.Forms.Button b_stepDown;
+        private Panel p_background;
+        private Panel p_cursor;
+        private Button b_stepUp;
+        private Button b_stepDown;
     }
 
-    public class ResizedEventArgs : EventArgs
+    public class SpanResizedEventArgs : EventArgs
     {
         public int NewSize { get; set; }
     }
 
-    public class CursorMovedEventArgs : EventArgs
+    public class SpanMovedEventArgs : EventArgs
     {
         public int NewValue { get; set; }
     }
