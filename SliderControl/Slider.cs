@@ -6,9 +6,6 @@ namespace SliderControl
 {
     public class Slider
     {
-        //todo
-        //vérifier la cohérence du nommage (cursor, span, value, etc)
-
         //Events
         /// <summary>
         /// Occurs after the slider's span is resized
@@ -133,9 +130,9 @@ namespace SliderControl
         public void SetLocation(Point newLocation)
         {
             this.p_background.Location = newLocation;
-            this.p_cursor.Location = new System.Drawing.Point(p_background.Location.X, p_background.Location.Y + 1);
-            this.b_stepDown.Location = new System.Drawing.Point(this.p_background.Location.X - 21, this.p_background.Location.Y);
-            this.b_stepUp.Location = new System.Drawing.Point(this.p_background.Location.X + this.p_background.Width - 1, this.p_background.Location.Y);
+            this.p_cursor.Location = new Point(p_background.Location.X, p_background.Location.Y + 1);
+            this.b_stepDown.Location = new Point(this.p_background.Location.X - 21, this.p_background.Location.Y);
+            this.b_stepUp.Location = new Point(this.p_background.Location.X + this.p_background.Width - 1, this.p_background.Location.Y);
         }
 
         /// <summary>
@@ -145,10 +142,10 @@ namespace SliderControl
         public void SetSize(Size newSize)
         {
             this.p_background.Size = newSize;
-            this.p_cursor.Size = new System.Drawing.Size(20, p_background.Height - 2);
-            this.b_stepDown.Size = new System.Drawing.Size(22, p_background.Height);
-            this.b_stepUp.Location = new System.Drawing.Point(this.p_background.Location.X + this.p_background.Width - 1, this.p_background.Location.Y);
-            this.b_stepUp.Size = new System.Drawing.Size(22, p_background.Height);
+            this.p_cursor.Size = new Size(20, p_background.Height - 2);
+            this.b_stepDown.Size = new Size(22, p_background.Height);
+            this.b_stepUp.Location = new Point(this.p_background.Location.X + this.p_background.Width - 1, this.p_background.Location.Y);
+            this.b_stepUp.Size = new Size(22, p_background.Height);
         }
 
         /// <summary>
@@ -180,7 +177,7 @@ namespace SliderControl
 
             int X = ValueToLocX(CurrentValue);
             p_cursor.Location = new Point(p_background.Location.X + X, p_cursor.Location.Y);
-            
+
             SpanMoved?.Invoke(this, new SpanMovedEventArgs { NewValue = CurrentValue });
         }
 
@@ -323,15 +320,15 @@ namespace SliderControl
         /// </summary>
         private void InitControl(Point spawnPoint, Size backgroundSize)
         {
-            this.p_background = new System.Windows.Forms.Panel();
-            this.p_cursor = new System.Windows.Forms.Panel();
-            this.b_stepDown = new System.Windows.Forms.Button();
-            this.b_stepUp = new System.Windows.Forms.Button();
+            this.p_background = new Panel();
+            this.p_cursor = new Panel();
+            this.b_stepDown = new Button();
+            this.b_stepUp = new Button();
             this.p_background.SuspendLayout();
             // 
             // p_background
             // 
-            this.p_background.BackColor = System.Drawing.SystemColors.ControlLight;
+            this.p_background.BackColor = SystemColors.ControlLight;
             this.p_background.Location = spawnPoint;
             this.p_background.Name = "p_background";
             this.p_background.Size = backgroundSize;
@@ -340,20 +337,20 @@ namespace SliderControl
             // 
             // p_cursor
             // 
-            this.p_cursor.BackColor = System.Drawing.SystemColors.ControlDark;
-            this.p_cursor.Location = new System.Drawing.Point(p_background.Location.X, p_background.Location.Y + 1);
+            this.p_cursor.BackColor = SystemColors.ControlDark;
+            this.p_cursor.Location = new Point(p_background.Location.X, p_background.Location.Y + 1);
             this.p_cursor.Name = "p_cursor";
-            this.p_cursor.Size = new System.Drawing.Size(20, p_background.Height - 2);
+            this.p_cursor.Size = new Size(20, p_background.Height - 2);
             this.p_cursor.TabIndex = 1;
-            this.p_cursor.MouseDown += new System.Windows.Forms.MouseEventHandler(this.p_cursor_MouseDown);
-            this.p_cursor.MouseUp += new System.Windows.Forms.MouseEventHandler(this.p_cursor_MouseUp);
+            this.p_cursor.MouseDown += new MouseEventHandler(this.p_cursor_MouseDown);
+            this.p_cursor.MouseUp += new MouseEventHandler(this.p_cursor_MouseUp);
             this.p_cursor.MouseMove += p_cursor_MouseMove;
             // 
             // b_stepDown
             // 
-            this.b_stepDown.Location = new System.Drawing.Point(this.p_background.Location.X - 21, this.p_background.Location.Y);
+            this.b_stepDown.Location = new Point(this.p_background.Location.X - 21, this.p_background.Location.Y);
             this.b_stepDown.Name = "b_stepDown";
-            this.b_stepDown.Size = new System.Drawing.Size(22, backgroundSize.Height);
+            this.b_stepDown.Size = new Size(22, backgroundSize.Height);
             this.b_stepDown.TabIndex = 2;
             this.b_stepDown.Text = "<";
             this.b_stepDown.Click += b_stepDown_Click;
@@ -361,9 +358,9 @@ namespace SliderControl
             // 
             // b_stepUp
             // 
-            this.b_stepUp.Location = new System.Drawing.Point(this.p_background.Location.X + this.p_background.Width - 1, this.p_background.Location.Y);
+            this.b_stepUp.Location = new Point(this.p_background.Location.X + this.p_background.Width - 1, this.p_background.Location.Y);
             this.b_stepUp.Name = "b_stepUp";
-            this.b_stepUp.Size = new System.Drawing.Size(22, backgroundSize.Height);
+            this.b_stepUp.Size = new Size(22, backgroundSize.Height);
             this.b_stepUp.TabIndex = 3;
             this.b_stepUp.Text = ">";
             this.b_stepUp.Click += b_stepUp_Click;

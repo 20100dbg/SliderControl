@@ -1,6 +1,6 @@
 ﻿using System;
-using SliderControl;
 using System.Windows.Forms;
+using SliderControl;
 
 namespace testSlider
 {
@@ -13,31 +13,32 @@ namespace testSlider
             InitializeComponent();
 
             s = new Slider(this);
+
+            s.SpanResizing += S_SpanResizing;
+            s.SpanResized += S_SpanResized;
+            s.SpanMoving += S_SpanMoving;
+            s.SpanMoved += S_SpanMoved;
             
-            s.SpanResized += S_Resized;
-            s.SpanResizing += S_Resizing;
-            s.SpanMoved += S_CursorMoved;
-            s.SpanMoving += S_CursorMoving;
         }
 
-        private void S_Resizing(object sender, SpanResizedEventArgs e)
+        private void S_SpanResizing(object sender, SpanResizedEventArgs e)
         {
-            label1.Text = e.NewSize.ToString();
+            label1.Text = "SpanResizing : " + e.NewSize.ToString();
         }
 
-        private void S_Resized(object sender, SpanResizedEventArgs e)
+        private void S_SpanResized(object sender, SpanResizedEventArgs e)
         {
-            label2.Text = e.NewSize.ToString();
+            label2.Text = "SpanResized : " + e.NewSize.ToString();
         }
 
-        private void S_CursorMoving(object sender, SpanMovedEventArgs e)
+        private void S_SpanMoving(object sender, SpanMovedEventArgs e)
         {
-            label3.Text = e.NewValue.ToString();
+            label3.Text = "SpanMoving : " + e.NewValue.ToString();
         }
 
-        private void S_CursorMoved(object sender, SpanMovedEventArgs e)
+        private void S_SpanMoved(object sender, SpanMovedEventArgs e)
         {
-            label4.Text = e.NewValue.ToString();
+            label4.Text = "SpanMoved : " + e.NewValue.ToString();
         }
     }
 }
