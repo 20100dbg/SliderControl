@@ -18,8 +18,18 @@ namespace testSlider
             s.SpanResized += S_SpanResized;
             s.SpanMoving += S_SpanMoving;
             s.SpanMoved += S_SpanMoved;
-            
+
+            UpdateParams();
         }
+
+        private void UpdateParams()
+        {
+            num_value.Value = s.CurrentValue;
+            num_span.Value = s.CurrentSpan;
+            num_smallChange.Value = s.SmallChange;
+            num_largeChange.Value = s.LargeChange;
+        }
+
 
         private void S_SpanResizing(object sender, SpanResizedEventArgs e)
         {
@@ -29,6 +39,7 @@ namespace testSlider
         private void S_SpanResized(object sender, SpanResizedEventArgs e)
         {
             label2.Text = "SpanResized : " + e.NewSize.ToString();
+            UpdateParams();
         }
 
         private void S_SpanMoving(object sender, SpanMovedEventArgs e)
@@ -39,6 +50,28 @@ namespace testSlider
         private void S_SpanMoved(object sender, SpanMovedEventArgs e)
         {
             label4.Text = "SpanMoved : " + e.NewValue.ToString();
+            UpdateParams();
+        }
+
+        private void b_apply_Click(object sender, EventArgs e)
+        {
+            //deactivate events temporarly
+            s.SpanResizing -= S_SpanResizing;
+            s.SpanResized -= S_SpanResized;
+            s.SpanMoving -= S_SpanMoving;
+            s.SpanMoved -= S_SpanMoved;
+
+            s.SetValue((int)num_value.Value);
+            s.SetSpan((int)num_span.Value);
+            s.SmallChange = (int)num_smallChange.Value;
+            s.LargeChange = (int)num_largeChange.Value;
+
+            //set back events
+            s.SpanResizing += S_SpanResizing;
+            s.SpanResized += S_SpanResized;
+            s.SpanMoving += S_SpanMoving;
+            s.SpanMoved += S_SpanMoved;
+
         }
     }
 }

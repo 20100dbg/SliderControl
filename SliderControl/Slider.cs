@@ -20,17 +20,18 @@ namespace SliderControl
         public delegate void SpanResizingEventHandler(object sender, SpanResizedEventArgs e);
 
         /// <summary>
-        /// Occurs after the cursor is moved
+        /// Occurs after the span is moved
         /// </summary>
         public event SpanMovedEventHandler SpanMoved;
         public delegate void SpanMovedEventHandler(object sender, SpanMovedEventArgs e);
 
         /// <summary>
-        /// Occurs when the cursor is being moved
+        /// Occurs when the span is being moved
         /// </summary>
         public event SpanMovingEventHandler SpanMoving;
         public delegate void SpanMovingEventHandler(object sender, SpanMovedEventArgs e);
 
+        public enum SpanStates { None, IsMoving, IsResizing };
 
         //Properties
         /// <summary>
@@ -63,13 +64,15 @@ namespace SliderControl
         /// </summary>
         public int LargeChange { get; set; }
 
+        /// <summary>
+        /// Gets the current SpanState
+        /// </summary>
+        public SpanStates SpanState { get; private set; }
 
         //Private attributes
         Form parentForm;
         Point previousLocation;
         Control activeControl;
-        bool isResizing = false;
-        bool isMoving = false;
         int minCusorSize = 5;
 
 
@@ -112,6 +115,7 @@ namespace SliderControl
             this.parentForm = parentForm;
             InitControl(location, size);
 
+            SpanState = SpanStates.None;
             Minimum = minimum;
             Maximum = maximum;
             SmallChange = 1;
@@ -130,7 +134,7 @@ namespace SliderControl
         public void SetLocation(Point newLocation)
         {
             this.p_background.Location = newLocation;
-            this.p_cursor.Location = new Point(p_background.Location.X, p_background.Location.Y + 1);
+            this.p_span.Location = new Point(p_background.Location.X, p_background.Location.Y + 1);
             this.b_stepDown.Location = new Point(this.p_background.Location.X - 21, this.p_background.Location.Y);
             this.b_stepUp.Location = new Point(this.p_background.Location.X + this.p_background.Width - 1, this.p_background.Location.Y);
         }
@@ -142,7 +146,7 @@ namespace SliderControl
         public void SetSize(Size newSize)
         {
             this.p_background.Size = newSize;
-            this.p_cursor.Size = new Size(20, p_background.Height - 2);
+            this.p_span.Size = new Size(20, p_background.Height - 2);
             this.b_stepDown.Size = new Size(22, p_background.Height);
             this.b_stepUp.Location = new Point(this.p_background.Location.X + this.p_background.Width - 1, this.p_background.Location.Y);
             this.b_stepUp.Size = new Size(22, p_background.Height);
@@ -159,8 +163,8 @@ namespace SliderControl
             else if (CurrentSpan < Minimum) CurrentSpan = Minimum;
 
             int width = WidthToSpan(newSpan);
-            if (p_cursor.Width < minCusorSize) width = minCusorSize;
-            p_cursor.Width = width;
+            if (p_span.Width < minCusorSize) width = minCusorSize;
+            p_span.Width = width;
 
             SpanResized?.Invoke(this, new SpanResizedEventArgs { NewSize = CurrentSpan });
         }
@@ -172,11 +176,11 @@ namespace SliderControl
         public void SetValue(int newValue)
         {
             CurrentValue = newValue;
-            if (CurrentValue > Maximum) CurrentValue = Maximum;
+            if (CurrentValue > Maximum - CurrentSpan) CurrentValue = Maximum - CurrentSpan;
             else if (CurrentValue < Minimum) CurrentValue = Minimum;
 
             int X = ValueToLocX(CurrentValue);
-            p_cursor.Location = new Point(p_background.Location.X + X, p_cursor.Location.Y);
+            p_span.Location = new Point(p_background.Location.X + X, p_span.Location.Y);
 
             SpanMoved?.Invoke(this, new SpanMovedEventArgs { NewValue = CurrentValue });
         }
@@ -185,16 +189,16 @@ namespace SliderControl
         //private stuff
         private void p_background_MouseUp(object sender, MouseEventArgs e)
         {
-            int wCursor = p_cursor.Width;
-            int relX = p_cursor.Location.X - p_background.Location.X;
+            int wSpan = p_span.Width;
+            int relX = p_span.Location.X - p_background.Location.X;
 
             if (e.X < relX) Scroll(LargeChange * -1);
-            else if (e.X > relX + wCursor) Scroll(LargeChange);
+            else if (e.X > relX + wSpan) Scroll(LargeChange);
         }
 
-        private void p_cursor_MouseMove(object sender, MouseEventArgs e)
+        private void p_span_MouseMove(object sender, MouseEventArgs e)
         {
-            if (isResizing || isMoving)
+            if (SpanState == SpanStates.IsMoving || SpanState == SpanStates.IsResizing)
             {
                 if (activeControl == null || activeControl != sender) return;
                 UpdateLocation(e.Location);
@@ -203,34 +207,33 @@ namespace SliderControl
                 Cursor.Current = (IsMouseOnBorder(e)) ? Cursors.SizeWE : Cursors.Arrow;
         }
 
-        private void p_cursor_MouseDown(object sender, MouseEventArgs e)
+        private void p_span_MouseDown(object sender, MouseEventArgs e)
         {
             activeControl = sender as Control;
             previousLocation = e.Location;
 
             bool flag = IsMouseOnBorder(e);
             Cursor.Current = (flag) ? Cursors.SizeWE : Cursors.Arrow;
-            isResizing = flag;
-            isMoving = !flag;
+            SpanState = (flag) ? SpanStates.IsResizing : SpanStates.IsMoving;
         }
 
-        private void p_cursor_MouseUp(object sender, MouseEventArgs e)
+        private void p_span_MouseUp(object sender, MouseEventArgs e)
         {
             activeControl = null;
             Cursor.Current = Cursors.Arrow;
 
-            if (isResizing)
+            if (SpanState == SpanStates.IsResizing)
             {
-                CurrentSpan = SpanToWidth(p_cursor.Width);
+                CurrentSpan = SpanToWidth(p_span.Width);
                 SpanResized?.Invoke(this, new SpanResizedEventArgs { NewSize = CurrentSpan });
             }
-            else if (isMoving)
+            else if (SpanState == SpanStates.IsMoving)
             {
-                int rel = p_cursor.Location.X - p_background.Location.X;
+                int rel = p_span.Location.X - p_background.Location.X;
                 CurrentValue = LocXToValue(rel);
                 SpanMoved?.Invoke(this, new SpanMovedEventArgs { NewValue = CurrentValue });
             }
-            isMoving = isResizing = false;
+            SpanState = SpanStates.None;
         }
 
         private void b_stepUp_Click(object sender, EventArgs e)
@@ -245,43 +248,43 @@ namespace SliderControl
 
         private bool IsMouseOnBorder(MouseEventArgs e)
         {
-            return (e.X >= p_cursor.Width - 2);
+            return (e.X >= p_span.Width - 2);
         }
 
         private void UpdateLocation(Point loc)
         {
             int diff = loc.X - previousLocation.X;
 
-            if (isResizing)
+            if (SpanState == SpanStates.IsResizing)
             {
-                if (p_cursor.Width + diff <= p_background.Width - (p_cursor.Location.X - p_background.Location.X))
+                if (p_span.Width + diff <= p_background.Width - (p_span.Location.X - p_background.Location.X))
                 {
-                    p_cursor.Width += diff;
-                    if (p_cursor.Width < minCusorSize) p_cursor.Width = minCusorSize;
+                    p_span.Width += diff;
+                    if (p_span.Width < minCusorSize) p_span.Width = minCusorSize;
                     previousLocation = loc;
 
-                    CurrentSpan = SpanToWidth(p_cursor.Width);
+                    CurrentSpan = SpanToWidth(p_span.Width);
                     SpanResizing?.Invoke(this, new SpanResizedEventArgs { NewSize = CurrentSpan });
                 }
             }
-            else if (isMoving)
+            else if (SpanState == SpanStates.IsMoving)
             {
-                Point newLoc = new Point(p_cursor.Location.X + diff, p_cursor.Location.Y);
+                Point newLoc = new Point(p_span.Location.X + diff, p_span.Location.Y);
 
                 if (newLoc.X < p_background.Location.X)
-                    p_cursor.Location = new Point(p_background.Location.X, p_cursor.Location.Y);
-                else if (newLoc.X + p_cursor.Width > p_background.Location.X + p_background.Width)
-                    p_cursor.Location = new Point(p_background.Location.X + p_background.Width - p_cursor.Width + 1, p_cursor.Location.Y);
+                    p_span.Location = new Point(p_background.Location.X, p_span.Location.Y);
+                else if (newLoc.X + p_span.Width > p_background.Location.X + p_background.Width)
+                    p_span.Location = new Point(p_background.Location.X + p_background.Width - p_span.Width + 1, p_span.Location.Y);
                 else
                 {
-                    int rel = p_cursor.Location.X - p_background.Location.X;
+                    int rel = p_span.Location.X - p_background.Location.X;
 
                     CurrentValue = LocXToValue(rel);
                     if (CurrentValue > Maximum) CurrentValue = Maximum;
                     else if (CurrentValue < Minimum) CurrentValue = Minimum;
 
                     SpanMoving?.Invoke(this, new SpanMovedEventArgs { NewValue = CurrentValue });
-                    p_cursor.Location = newLoc;
+                    p_span.Location = newLoc;
                 }
             }
         }
@@ -293,14 +296,16 @@ namespace SliderControl
 
         private int LocXToValue(int X)
         {
-            int bg = p_background.Width - p_cursor.Width;
+            //int bg = p_background.Width - p_span.Width;
+            int bg = p_background.Width;
             if (bg == 0) bg = 1;
             return X * Maximum / bg;
         }
 
         private int ValueToLocX(int val)
         {
-            int bg = p_background.Width - p_cursor.Width;
+            //int bg = p_background.Width - p_span.Width;
+            int bg = p_background.Width;
             if (bg == 0) bg = 1;
             return val * bg / Maximum;
         }
@@ -321,7 +326,7 @@ namespace SliderControl
         private void InitControl(Point spawnPoint, Size backgroundSize)
         {
             this.p_background = new Panel();
-            this.p_cursor = new Panel();
+            this.p_span = new Panel();
             this.b_stepDown = new Button();
             this.b_stepUp = new Button();
             this.p_background.SuspendLayout();
@@ -335,16 +340,16 @@ namespace SliderControl
             this.p_background.MouseUp += p_background_MouseUp;
             this.p_background.TabIndex = 0;
             // 
-            // p_cursor
+            // p_span
             // 
-            this.p_cursor.BackColor = SystemColors.ControlDark;
-            this.p_cursor.Location = new Point(p_background.Location.X, p_background.Location.Y + 1);
-            this.p_cursor.Name = "p_cursor";
-            this.p_cursor.Size = new Size(20, p_background.Height - 2);
-            this.p_cursor.TabIndex = 1;
-            this.p_cursor.MouseDown += new MouseEventHandler(this.p_cursor_MouseDown);
-            this.p_cursor.MouseUp += new MouseEventHandler(this.p_cursor_MouseUp);
-            this.p_cursor.MouseMove += p_cursor_MouseMove;
+            this.p_span.BackColor = SystemColors.ControlDark;
+            this.p_span.Location = new Point(p_background.Location.X, p_background.Location.Y + 1);
+            this.p_span.Name = "p_span";
+            this.p_span.Size = new Size(20, p_background.Height - 2);
+            this.p_span.TabIndex = 1;
+            this.p_span.MouseDown += new MouseEventHandler(this.p_span_MouseDown);
+            this.p_span.MouseUp += new MouseEventHandler(this.p_span_MouseUp);
+            this.p_span.MouseMove += p_span_MouseMove;
             // 
             // b_stepDown
             // 
@@ -366,7 +371,7 @@ namespace SliderControl
             this.b_stepUp.Click += b_stepUp_Click;
             this.b_stepUp.UseVisualStyleBackColor = true;
 
-            parentForm.Controls.Add(this.p_cursor);
+            parentForm.Controls.Add(this.p_span);
             parentForm.Controls.Add(this.p_background);
             parentForm.Controls.Add(this.b_stepDown);
             parentForm.Controls.Add(this.b_stepUp);
@@ -374,7 +379,7 @@ namespace SliderControl
         }
 
         private Panel p_background;
-        private Panel p_cursor;
+        private Panel p_span;
         private Button b_stepUp;
         private Button b_stepDown;
     }
