@@ -69,12 +69,17 @@ namespace SliderControl
         /// </summary>
         public SpanStates SpanState { get; private set; }
 
+        /// <summary>
+        /// Gets the current SpanState
+        /// </summary>
+        public string Version { get; private set; }
+
+
         //Private attributes
         Form parentForm;
         Point previousLocation;
         Control activeControl;
         int minCusorSize = 5;
-
 
         //Constructors
         /// <summary>
@@ -115,6 +120,7 @@ namespace SliderControl
             this.parentForm = parentForm;
             InitControl(location, size);
 
+            Version = "0.9.0";
             SpanState = SpanStates.None;
             Minimum = minimum;
             Maximum = maximum;
@@ -274,7 +280,7 @@ namespace SliderControl
                 if (newLoc.X < p_background.Location.X)
                     p_span.Location = new Point(p_background.Location.X, p_span.Location.Y);
                 else if (newLoc.X + p_span.Width > p_background.Location.X + p_background.Width)
-                    p_span.Location = new Point(p_background.Location.X + p_background.Width - p_span.Width + 1, p_span.Location.Y);
+                    p_span.Location = new Point(p_background.Location.X + p_background.Width - p_span.Width, p_span.Location.Y);
                 else
                 {
                     int rel = p_span.Location.X - p_background.Location.X;
