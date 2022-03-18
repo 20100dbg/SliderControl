@@ -69,17 +69,13 @@ namespace SliderControl
         /// </summary>
         public SpanStates SpanState { get; private set; }
 
-        /// <summary>
-        /// Gets the current SpanState
-        /// </summary>
-        public string Version { get; private set; }
-
 
         //Private attributes
         Form parentForm;
         Point previousLocation;
         Control activeControl;
         int minCusorSize = 5;
+        string version = "1.0.0";
 
         //Constructors
         /// <summary>
@@ -120,7 +116,6 @@ namespace SliderControl
             this.parentForm = parentForm;
             InitControl(location, size);
 
-            Version = "0.9.0";
             SpanState = SpanStates.None;
             Minimum = minimum;
             Maximum = maximum;
