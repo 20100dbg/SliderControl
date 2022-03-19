@@ -1,5 +1,8 @@
 # SliderControl for .Net
 
+![demo](/testSlider/demo.gif)
+
+
 ## Introduction
 
 Ce projet est configuré pour utilisé .Net framework 4.7.2.
