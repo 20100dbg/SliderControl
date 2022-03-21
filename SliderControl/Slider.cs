@@ -120,7 +120,7 @@ namespace SliderControl
             Minimum = minimum;
             Maximum = maximum;
             SmallChange = 1;
-            LargeChange = 40;
+            LargeChange = (int)(Maximum * 0.1);
 
             SetSpan(span);
             SetValue(0);
