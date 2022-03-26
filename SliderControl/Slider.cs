@@ -71,49 +71,50 @@ namespace SliderControl
 
 
         //Private attributes
-        Form parentForm;
+        //Form parentForm;
+        Control.ControlCollection parent;
         Point previousLocation;
         Control activeControl;
         int minCusorSize = 5;
-        string version = "1.0.0";
+        string version = "1.0.1";
 
         //Constructors
         /// <summary>
         /// Build a Slider control thats sets location, size, minimum and maximum values
         /// </summary>
         /// <param name="parentForm">The form the control must be added to</param>
-        public Slider(Form parentForm, Point location, Size size, int minimum, int maximum)
+        public Slider(Control.ControlCollection parent, Point location, Size size, int minimum, int maximum)
         {
-            Init(parentForm, location, size, minimum, maximum, 10);
+            Init(parent, location, size, minimum, maximum, 10);
         }
 
         /// <summary>
         /// Build a Slider control that sets minimum and maximum values
         /// </summary>
         /// <param name="parentForm">The form the control must be added to</param>
-        public Slider(Form parentForm, int minimum, int maximum)
+        public Slider(Control.ControlCollection parent, int minimum, int maximum)
         {
             Point location = new Point(100, 100);
             Size size = new Size(200, 22);
 
-            Init(parentForm, location, size, minimum, maximum, 10);
+            Init(parent, location, size, minimum, maximum, 10);
         }
 
         /// <summary>
         /// Build a Slider control with default parameters
         /// </summary>
         /// <param name="parentForm">The form the control must be added to</param>
-        public Slider(Form parentForm)
+        public Slider(Control.ControlCollection parent)
         {
             Point location = new Point(100, 100);
             Size size = new Size(200, 22);
 
-            Init(parentForm, location, size, 0, 100, 10);
+            Init(parent, location, size, 0, 100, 10);
         }
 
-        private void Init(Form parentForm, Point location, Size size, int minimum, int maximum, int span)
+        private void Init(Control.ControlCollection parent, Point location, Size size, int minimum, int maximum, int span)
         {
-            this.parentForm = parentForm;
+            this.parent = parent;
             InitControl(location, size);
 
             SpanState = SpanStates.None;
@@ -163,7 +164,7 @@ namespace SliderControl
             if (CurrentSpan > Maximum) CurrentSpan = Maximum;
             else if (CurrentSpan < Minimum) CurrentSpan = Minimum;
 
-            int width = WidthToSpan(newSpan);
+            int width = SpanToWidth(newSpan);
             if (p_span.Width < minCusorSize) width = minCusorSize;
             p_span.Width = width;
 
@@ -225,7 +226,7 @@ namespace SliderControl
 
             if (SpanState == SpanStates.IsResizing)
             {
-                CurrentSpan = SpanToWidth(p_span.Width);
+                CurrentSpan = WidthToSpan(p_span.Width);
                 SpanResized?.Invoke(this, new SpanResizedEventArgs { NewSize = CurrentSpan });
             }
             else if (SpanState == SpanStates.IsMoving)
@@ -255,16 +256,17 @@ namespace SliderControl
         private void UpdateLocation(Point loc)
         {
             int diff = loc.X - previousLocation.X;
+            if (diff == 0) return;
 
             if (SpanState == SpanStates.IsResizing)
             {
-                if (p_span.Width + diff <= p_background.Width - (p_span.Location.X - p_background.Location.X))
+                if (p_span.Width + diff <= p_background.Width - p_span.Location.X - p_background.Location.X)
                 {
                     p_span.Width += diff;
                     if (p_span.Width < minCusorSize) p_span.Width = minCusorSize;
                     previousLocation = loc;
 
-                    CurrentSpan = SpanToWidth(p_span.Width);
+                    CurrentSpan = WidthToSpan(p_span.Width);
                     SpanResizing?.Invoke(this, new SpanResizedEventArgs { NewSize = CurrentSpan });
                 }
             }
@@ -284,8 +286,8 @@ namespace SliderControl
                     if (CurrentValue > Maximum) CurrentValue = Maximum;
                     else if (CurrentValue < Minimum) CurrentValue = Minimum;
 
-                    SpanMoving?.Invoke(this, new SpanMovedEventArgs { NewValue = CurrentValue });
                     p_span.Location = newLoc;
+                    SpanMoving?.Invoke(this, new SpanMovedEventArgs { NewValue = CurrentValue });
                 }
             }
         }
@@ -297,7 +299,6 @@ namespace SliderControl
 
         private int LocXToValue(int X)
         {
-            //int bg = p_background.Width - p_span.Width;
             int bg = p_background.Width;
             if (bg == 0) bg = 1;
             return X * Maximum / bg;
@@ -305,18 +306,17 @@ namespace SliderControl
 
         private int ValueToLocX(int val)
         {
-            //int bg = p_background.Width - p_span.Width;
             int bg = p_background.Width;
             if (bg == 0) bg = 1;
             return val * bg / Maximum;
         }
 
-        private int WidthToSpan(int width)
+        private int SpanToWidth(int width)
         {
             return width * p_background.Width / Maximum;
         }
 
-        private int SpanToWidth(int span)
+        private int WidthToSpan(int span)
         {
             return span * Maximum / p_background.Width;
         }
@@ -372,10 +372,10 @@ namespace SliderControl
             this.b_stepUp.Click += b_stepUp_Click;
             this.b_stepUp.UseVisualStyleBackColor = true;
 
-            parentForm.Controls.Add(this.p_span);
-            parentForm.Controls.Add(this.p_background);
-            parentForm.Controls.Add(this.b_stepDown);
-            parentForm.Controls.Add(this.b_stepUp);
+            parent.Add(this.p_span);
+            parent.Add(this.p_background);
+            parent.Add(this.b_stepDown);
+            parent.Add(this.b_stepUp);
             this.p_background.ResumeLayout(false);
         }
 

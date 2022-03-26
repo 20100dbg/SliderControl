@@ -12,7 +12,7 @@ namespace testSlider
         {
             InitializeComponent();
 
-            s = new Slider(this);
+            s = new Slider(this.Controls);
 
             s.SpanResizing += S_SpanResizing;
             s.SpanResized += S_SpanResized;
@@ -73,5 +73,6 @@ namespace testSlider
             s.SpanMoved += S_SpanMoved;
 
         }
+
     }
 }
