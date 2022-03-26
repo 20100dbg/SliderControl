@@ -260,7 +260,7 @@ namespace SliderControl
 
             if (SpanState == SpanStates.IsResizing)
             {
-                if (p_span.Width + diff <= p_background.Width - p_span.Location.X - p_background.Location.X)
+                if (p_span.Width + diff <= p_background.Width - (p_span.Location.X - p_background.Location.X))
                 {
                     p_span.Width += diff;
                     if (p_span.Width < minCusorSize) p_span.Width = minCusorSize;
